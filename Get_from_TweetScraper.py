@@ -46,11 +46,11 @@ def del_scraper(screen_name,password,main_dir,TweetScraper_path,saving_path,file
     try:
         #Moving files to dedicated folder
         if os.path.isdir(TweetScraper_path) is True:
-            print("{} Moving any files to dedicated folder {}.".format(screen_name,saving_path))
+            print(f"{screen_name} Moving any files to dedicated folder {saving_path}.")
             for tweet_file in os.listdir(files_path):
-                if tweet_file.startswith("{}".format(screen_name)):
+                if tweet_file.startswith(f"{screen_name}"):
                     shutil.move(tweet_file, saving_path)
-            print("{} FILES MOVED TO FOLDER {}.".format(screen_name,saving_path,"/",screen_name))
+            print(f"{screen_name} FILES MOVED TO FOLDER {saving_path}.")
             sudo = shlex.split("sudo -u")
             del_folder = shlex.split("rm -rf TweetScraper")
             # Deleting old TweepScraper files
@@ -68,7 +68,7 @@ def del_scraper(screen_name,password,main_dir,TweetScraper_path,saving_path,file
                 return False
             else:
                 sys.stdout.write("Please respond with 'yes' or 'no'")
-            
+
         elif os.path.isdir(TweetScraper_path) is False:
             print("No TweetScraper folder found.")
     except SyntaxError:
@@ -81,16 +81,25 @@ def scraper(screen_name,password,main_dir,TweetScraper_path,saving_path,files_pa
         sudo = shlex.split("sudo -u")
         del_scraper(screen_name,password,main_dir,TweetScraper_path,saving_path,files_path)
         os.chdir(main_dir)
-        print("Downloading TweepScraper in {}.".format(TweetScraper_path))
+        print(f"Downloading TweepScraper in {TweetScraper_path}.")
         os.system("git clone https://github.com/jonbakerfish/TweetScraper.git")
         print("Download complete. Checking TweetScraper.")
         os.chdir("TweetScraper/")
         os.system("scrapy list")
-        command1 = shlex.split('scrapy crawl TweetScraper -a query="from:{}"'.format(screen_name))
-        command2 = shlex.split('scrapy crawl TweetScraper -a query="to:{} since:{} --until:{}"'.format(screen_name,since,until))
-        if (since == None) and (until == None):
+        command1 = shlex.split(
+            f'scrapy crawl TweetScraper -a query="from:{screen_name}"'
+        )
+
+        command2 = shlex.split(
+            f'scrapy crawl TweetScraper -a query="to:{screen_name} since:{since} --until:{until}"'
+        )
+
+        if since is None and until is None:
             print("This command will be run in the terminal: ",command1)
-            print("{} Getting tweets from TweetScraper. This may take some time so please wait...".format(screen_name))
+            print(
+                f"{screen_name} Getting tweets from TweetScraper. This may take some time so please wait..."
+            )
+
             subprocess.Popen(sudo,universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             subprocess.Popen(password,universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             cmd = subprocess.Popen(command1,universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
@@ -99,14 +108,17 @@ def scraper(screen_name,password,main_dir,TweetScraper_path,saving_path,files_pa
             cmd.communicate()
         elif (since != None) and (until != None):
             print("This command will be run in the terminal: ",command2)
-            print("{} Getting replies from TweetScraper. This may take some time so please wait...".format(screen_name,since,until))
+            print(
+                f"{screen_name} Getting replies from TweetScraper. This may take some time so please wait..."
+            )
+
             subprocess.Popen(sudo,universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             subprocess.Popen(password,universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             cmd = subprocess.Popen(command2,universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
             print(subprocess.check_output(command1))
             print("Command sent. Waiting till download is finished...")
             cmd.communicate()
-        print("Scraping complete for {}.".format(screen_name))
+        print(f"Scraping complete for {screen_name}.")
     except SyntaxError:
         pass
     return
@@ -114,11 +126,14 @@ def scraper(screen_name,password,main_dir,TweetScraper_path,saving_path,files_pa
 
 def create_saving_path(screen_name,saving_path):
     if not os.path.exists(saving_path):
-        print("Creating a dedicated file for {} at .".format(screen_name,saving_path))
+        print(f"Creating a dedicated file for {screen_name} at .")
         os.makedirs(saving_path)
     elif os.path.exists(saving_path):
         if os.listdir(saving_path):
-            print("There seems to already be a dedicated folder for {} at {}. Please move files and empty folder.".format(screen_name,saving_path))
+            print(
+                f"There seems to already be a dedicated folder for {screen_name} at {saving_path}. Please move files and empty folder."
+            )
+
             yes = {'yes','y', 'ye', ''}
             no = {'no','n'}
             choice = input("Type 'YES' to delete existing folder. Note: Make sure tweet files are saved somewhere else.").lower()
@@ -129,16 +144,14 @@ def create_saving_path(screen_name,saving_path):
                 subprocess.Popen(del_replies,shell=True,stdout=subprocess.PIPE)
             elif choice in no:
                 sys.exit("Script will bnow be terminated.")
-        elif not os.listdir(saving_path):
-            pass
     return
 
 
 def open_files(screen_name,ids,path):
-    print("{} getting IDs from TweetScrapper.".format(screen_name))
+    print(f"{screen_name} getting IDs from TweetScrapper.")
     for file in os.listdir(path):
         ids.append(int(file))
-        print("{} {} tweets gotten from TweetScrapper.".format(screen_name,len(ids)))
+        print(f"{screen_name} {len(ids)} tweets gotten from TweetScrapper.")
     return ids
 
 
@@ -150,7 +163,7 @@ def get_sql(screen_name):
     since = min(created_at)
     until = max(created_at)
     alltweets = df_tweet['id_str'].tolist()
-    print("{} getting {} ids from SQL as alltweets.".format(screen_name,len(alltweets)))
+    print(f"{screen_name} getting {len(alltweets)} ids from SQL as alltweets.")
     print("Since: ",since)
     print("Until: ",until)
     return alltweets,since,until
@@ -164,7 +177,7 @@ def get_ids(screen_name,alltweets,ids,len_ids):
                 ids.remove(_id)
                 new_len_ids = len(ids)
                 removed = len_ids - new_len_ids
-                print("{} IDs removed: {}".format(screen_name,removed))
+                print(f"{screen_name} IDs removed: {removed}")
     return ids
 
 
@@ -176,18 +189,24 @@ def filter_replies(screen_name,alltweets,replytweets,final_replytweets,counter,b
     for tweet in alltweets:
         for reply in replytweets:
             for key,value in reply.items():
-                if 'in_reply_to_status_id' in key:
-                    if (value is not None) and (value == tweet):
-                        final_replytweets.append(reply)
-                        print("{} {} directed comment tweets downloaded so far.".format(screen_name,len(final_replytweets)))
-                        if counter == 100:
-                            print("{} directed tweets left to finish: {}".format(screen_name,left))
-                        if counter == 10:
-                            print("{} counter reached {}, saving tweets.".format(screen_name,big_counter))
-                            with open(screen_name+'_final_replytweets.json', 'w') as f:
-                                json.dump(final_replytweets, f)
-                            print("{} {} TWEETS SAVED.".format(screen_name,len(final_replytweets)))
-                            counter = 0
+                if (
+                    'in_reply_to_status_id' in key
+                    and (value is not None)
+                    and (value == tweet)
+                ):
+                    final_replytweets.append(reply)
+                    print(
+                        f"{screen_name} {len(final_replytweets)} directed comment tweets downloaded so far."
+                    )
+
+                    if counter == 100:
+                        print(f"{screen_name} directed tweets left to finish: {left}")
+                    if counter == 10:
+                        print(f"{screen_name} counter reached {big_counter}, saving tweets.")
+                        with open(screen_name+'_final_replytweets.json', 'w') as f:
+                            json.dump(final_replytweets, f)
+                        print(f"{screen_name} {len(final_replytweets)} TWEETS SAVED.")
+                        counter = 0
     return final_replytweets
 
 
@@ -198,9 +217,9 @@ def add_cols(x):
         if 'extended_entities' in i:
             if i['extended_entities']['media'][0]['type'] == 'video':
                 add_cols.append([i['extended_entities']['media'][0]['type'],i['user']['id'],i['id']])
-            elif i['extended_entities']['media'][0]['type'] != 'video':
+            else:
                 add_cols.append(["not video",i['user']['id'],i['id']])
-        elif 'extended_entities' not in i:
+        else:
             add_cols.append(["not video",i['user']['id'],i['id']])
 
     return add_cols
@@ -213,7 +232,7 @@ def flatten(x):
         if isinstance(d[key], list):
             value = d.pop(key)
             for i, v in enumerate(value):
-                d.update(flatten({'{}_{}'.format(key, i): v}))
+                d.update(flatten({f'{key}_{i}': v}))
         elif isinstance(d[key], dict):
             d[key] = str(d[key])
     return d
@@ -227,45 +246,41 @@ def genre(df_tweet):
         return "Opinionated news"
     if df_tweet["twitter_name"] in news:
         return "News"
-    if df_tweet["twitter_name"] in parody:
-        return "Parody"
-    else:
-        return "News satire"
+    return "Parody" if df_tweet["twitter_name"] in parody else "News satire"
 
 
 def write_df(screen_name,alltweets):
     
     if len(alltweets) > 0:
         #write DataFrame
-        print("{} Flatten df.".format(screen_name))
+        print(f"{screen_name} Flatten df.")
         df_tweet_flat = pd.DataFrame([flatten(tweet) for tweet in alltweets])
         df_tweet_flat = df_tweet_flat.drop_duplicates(subset="id")
 
         #add_cols
-        print("{} Adding columns.".format(screen_name))
+        print(f"{screen_name} Adding columns.")
         add_tweet_cols = add_cols(alltweets)
         df_add_tweet_cols = pd.DataFrame(add_tweet_cols, columns = ["video","user_id","id"])
         df_tweet = pd.merge(df_add_tweet_cols.set_index("id"),df_tweet_flat.set_index("id"), right_index=True, left_index=True).reset_index()
-        print("{} Fixing date.".format(screen_name))
+        print(f"{screen_name} Fixing date.")
         df_tweet['created_at'] = pd.to_datetime(df_tweet['created_at']).dt.date
         df_tweet.insert(0, "platform", "Twitter")
         df_tweet.insert(1, "twitter_name", screen_name)
         df_tweet["rowNumber"] = np.arange(len(df_tweet))
-        print("{} Adding genre.".format(screen_name))
+        print(f"{screen_name} Adding genre.")
         df_tweet["genre"] = df_tweet.apply(genre, axis=1)
         cols = list(df_tweet)
-        print("{} Adding rowNumber.".format(screen_name))
+        print(f"{screen_name} Adding rowNumber.")
         cols.insert(0, cols.pop(cols.index("rowNumber")))
         cols.insert(3, cols.pop(cols.index("genre")))
         df_tweet = df_tweet.loc[:, cols]
-        print("{} Clearing Duplicates.".format(screen_name))
+        print(f"{screen_name} Clearing Duplicates.")
         df_tweet = df_tweet.drop_duplicates(subset="id")
-        #df_tweet = df_tweet.loc[df_tweet.astype(str).drop_duplicates().index]
-    
+            #df_tweet = df_tweet.loc[df_tweet.astype(str).drop_duplicates().index]
+
     elif len(alltweets) == 0:
         print("No tweets in list.")
         df_tweet = pd.DataFrame()
-        pass
     return df_tweet
 
 
